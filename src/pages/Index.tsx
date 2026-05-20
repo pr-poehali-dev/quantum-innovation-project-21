@@ -1,6 +1,17 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
+type Project = {
+  id: number;
+  title: string;
+  author: string;
+  category: string;
+  description: string;
+  image: string;
+  images?: string[];
+  tags: string[];
+};
+
 const projects = [
   {
     id: 1,
@@ -47,13 +58,45 @@ const projects = [
     image: "https://cdn.poehali.dev/projects/ace5ea6d-f209-4135-973f-ef30a20a554a/bucket/5cf1fa0f-1fd8-462e-9215-1484e7a6a82b.png",
     tags: ["Поэзия", "Минимализм", "Обложка"],
   },
+  {
+    id: 6,
+    title: "Свой",
+    author: "Сидоров А. Е.",
+    category: "Художественная проза",
+    description: "Монохромная графика, драматичные тёмные иллюстрации с вороном — экспрессивное оформление авторской прозы издания ВШПМ.",
+    image: "https://cdn.poehali.dev/files/8a516b66-9650-456b-8d6c-4847a26ec4fa.jpg",
+    images: [
+      "https://cdn.poehali.dev/files/8a516b66-9650-456b-8d6c-4847a26ec4fa.jpg",
+      "https://cdn.poehali.dev/files/6d9ac161-8003-480f-9c06-e7c10b035c4d.jpg",
+    ],
+    tags: ["Иллюстрация", "Типографика", "Художественная проза", "Вёрстка"],
+  },
+  {
+    id: 7,
+    title: "Геометрия 10",
+    author: "Л. Г. Емохонова",
+    category: "Учебная литература",
+    description: "Серия школьных учебников. Коллажная обложка с геометрическими фигурами и классическими мотивами на охристом фоне.",
+    image: "https://cdn.poehali.dev/files/339f1c10-fe4f-4803-acc4-156e802d97ce.png",
+    tags: ["Обложка", "Серийное оформление", "Типографика"],
+  },
+  {
+    id: 8,
+    title: "МХК / География 10",
+    author: "Л. Г. Емохонова",
+    category: "Учебная литература",
+    description: "Продолжение серии учебников. Коллаж из репродукций мировой культуры и географических образов, единый стиль серии.",
+    image: "https://cdn.poehali.dev/files/116c5aee-d16c-4b4a-9f94-801a9a579981.png",
+    tags: ["Обложка", "Серийное оформление", "Иллюстрация"],
+  },
 ];
 
-const allTags = ["Все", "Обложка", "Иллюстрация", "Детская книга", "Артбук", "Типографика", "Вёрстка"];
+const allTags = ["Все", "Обложка", "Иллюстрация", "Детская книга", "Артбук", "Типографика", "Вёрстка", "Серийное оформление"];
 
 export default function Index() {
   const [activeTag, setActiveTag] = useState("Все");
-  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [modalImg, setModalImg] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<"portfolio" | "about">("portfolio");
 
   const filtered = activeTag === "Все"
@@ -243,54 +286,73 @@ export default function Index() {
       </main>
 
       {/* Modal */}
-      {selectedProject && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedProject(null)}
-        >
+      {selectedProject && (() => {
+        const allImages = selectedProject.images ?? [selectedProject.image];
+        const currentImg = modalImg ?? selectedProject.image;
+        return (
           <div
-            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
-            onClick={e => e.stopPropagation()}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => { setSelectedProject(null); setModalImg(null); }}
           >
-            <div className="grid md:grid-cols-2 gap-0">
-              <div className="aspect-[3/4] md:aspect-auto bg-[#f0ece6] rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none overflow-hidden">
-                <img
-                  src={selectedProject.image}
-                  alt={selectedProject.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-8 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-6">
-                    <p className="text-xs text-[#c0392b] uppercase tracking-widest">{selectedProject.category}</p>
-                    <button
-                      onClick={() => setSelectedProject(null)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f0ece6] hover:bg-[#e0dbd4] transition-colors"
-                    >
-                      <Icon name="X" size={14} />
-                    </button>
+            <div
+              className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="grid md:grid-cols-2 gap-0">
+                <div className="bg-[#f0ece6] rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none overflow-hidden flex flex-col">
+                  <div className="flex-1 overflow-hidden">
+                    <img
+                      src={currentImg}
+                      alt={selectedProject.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <h2 className="text-2xl font-semibold mb-1">{selectedProject.title}</h2>
-                  <p className="text-[#888] text-sm mb-6">{selectedProject.author}</p>
-                  <p className="text-[#444] leading-relaxed text-sm">{selectedProject.description}</p>
-                  <div className="flex gap-2 flex-wrap mt-6">
-                    {selectedProject.tags.map(t => (
-                      <span key={t} className="text-xs bg-[#f0ece6] text-[#555] px-3 py-1 rounded-full">{t}</span>
-                    ))}
-                  </div>
+                  {allImages.length > 1 && (
+                    <div className="flex gap-2 p-3 justify-center">
+                      {allImages.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setModalImg(img)}
+                          className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${currentImg === img ? "border-[#c0392b]" : "border-transparent opacity-60 hover:opacity-100"}`}
+                        >
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => setSelectedProject(null)}
-                  className="mt-8 w-full py-3 border border-[#d5cfc8] text-sm rounded-xl hover:bg-[#f0ece6] transition-colors"
-                >
-                  Закрыть
-                </button>
+                <div className="p-8 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start mb-6">
+                      <p className="text-xs text-[#c0392b] uppercase tracking-widest">{selectedProject.category}</p>
+                      <button
+                        onClick={() => { setSelectedProject(null); setModalImg(null); }}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#f0ece6] hover:bg-[#e0dbd4] transition-colors"
+                      >
+                        <Icon name="X" size={14} />
+                      </button>
+                    </div>
+                    <h2 className="text-2xl font-semibold mb-1">{selectedProject.title}</h2>
+                    <p className="text-[#888] text-sm mb-6">{selectedProject.author}</p>
+                    <p className="text-[#444] leading-relaxed text-sm">{selectedProject.description}</p>
+                    <div className="flex gap-2 flex-wrap mt-6">
+                      {selectedProject.tags.map(t => (
+                        <span key={t} className="text-xs bg-[#f0ece6] text-[#555] px-3 py-1 rounded-full">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setSelectedProject(null); setModalImg(null); }}
+                    className="mt-8 w-full py-3 border border-[#d5cfc8] text-sm rounded-xl hover:bg-[#f0ece6] transition-colors"
+                  >
+                    Закрыть
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Footer */}
       <footer className="border-t border-[#e0dbd4] mt-20">
